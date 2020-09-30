@@ -18,7 +18,7 @@ You should have installed our modified version of picoquic (from [here](link)) o
 The `VIP` of Cheetah is preconfigured to be `192.168.64.1`
 
 The `DIP` of Server-1 is preconfigured to be `192.168.63.16`. Server-1 is connected to port 10 (D_P = 52) of the Tofino switch.
-The `DIP` of Server-2 is preconfigured to be `192.168.63.19`. Server-2 is connected to port 13 (D_P = ??) of the Tofino switch.
+The `DIP` of Server-2 is preconfigured to be `192.168.63.19`. Server-2 is connected to port 13 (D_P = 28) of the Tofino switch.
 
 The client is connected to port 9 (D_P = 60) of the tofino switch.
 
