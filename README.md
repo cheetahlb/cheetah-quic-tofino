@@ -54,7 +54,9 @@ Run in another window the following commands:
 
 Ths switch is now running properly.
 
-## Test the load balancer.
+## Test the load balancer
+
+Prerequisites: generate a file to be fetched by the client and put it into `server_files/index.html` subdirectory of the picoquic directory where you will run the following commands. Also create a directory `client_files` where the fetched file will be stored.
 
 Go to Server-1 and run the following command:
 
