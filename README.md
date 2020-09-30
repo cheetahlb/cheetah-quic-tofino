@@ -4,7 +4,10 @@ We implemented Cheetah in P4 on the Tofino to load balancer QUIC connections by 
 
 ## Code organization
 
-The code consists of the Tofino files
+The code consists of two files:
+
+ * `cheetah_quic_pipeline.p4`, which contains the P4 program to handle Cheetah cookies.
+ * `cheetah_setup.py`, which contains the Python commands to populate the P4 switch.
 
 ## Prerequisites
 
@@ -14,14 +17,14 @@ You should have installed our modified version of picoquic (from [here](link)) o
 
 The `VIP` of Cheetah is preconfigured to be `192.168.64.1`
 
-The `DIP` of `Server-1` is preconfigured to be `192.168.63.16`. `Server-1` is connected to port `10` (`D_P = 52`) of the Tofino switch.
-The `DIP` of `Server-2` is preconfigured to be `192.168.63.19`. `Server-2` is connected to port `13` (`D_P = ??`) of the Tofino switch.
+The `DIP` of Server-1 is preconfigured to be `192.168.63.16`. Server-1 is connected to port 10 (D_P = 52) of the Tofino switch.
+The `DIP` of Server-2 is preconfigured to be `192.168.63.19`. Server-2 is connected to port 13 (D_P = ??) of the Tofino switch.
 
-The client is connected to port `9` (`D_P = 60`) of the tofino switch.
+The client is connected to port 9 (D_P = 60) of the tofino switch.
 
 The current P4 program does not handle ARP requests so ARP should be statically set up on the machines and the MAC addresses should be configured in the `cheetah_setup.py` file.
 
-The LB implementes Weighted Round Robin with 3 buckets. Two first two buckets map to `Server-1` and the last bucket to `Server-2`.
+The LB implementes Weighted Round Robin with 3 buckets. Two first two buckets map to Server-1 and the last bucket to Server-2.
 
 If you plan to change these values, you need to modify them in the `cheetah_setup.py` file.
 
@@ -53,11 +56,11 @@ Ths switch is now running properly.
 
 ## Test the load balancer.
 
-Go to `Server-1` and run the following command:
+Go to Server-1 and run the following command:
 
 `./picoquic_sample server 4433 ./certs/ca-cert.pem ./certs/server-key.pem ./server_files 1`
 
-Go to `Server-2` and run the following command:
+Go to Server-2 and run the following command:
 
 `./picoquic_sample server 4433 ./certs/ca-cert.pem ./certs/server-key.pem ./server_files 2`
 
@@ -67,11 +70,11 @@ Go to the client and run the following command:
 
 `./picoquic_sample client 192.168.64.1 4433 ./client_files index.html`
 
-This will generate a request towards the `VIP` and will be served by `Server-1`. Check on `tcpdump`.
+This will generate a request towards the `VIP` and will be served by Server-1. Check on `tcpdump`.
 
-Run again the same command at the client. The request will again be served by `Server-1`. Check on `tcpdump`
+Run again the same command at the client. The request will again be served by Server-1. Check on `tcpdump`
 
-Run again the same command at the client. The request will now be served by `Server-2`. Check on `tcpdump`
+Run again the same command at the client. The request will now be served by Server-2. Check on `tcpdump`
 
 This cycle repeats for each request sent by a client.
 
