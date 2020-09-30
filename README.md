@@ -1,6 +1,6 @@
-# Cheetah with QUIC: P4-Tofino code
+# Stateless Cheetah with QUIC: P4-Tofino code
 
-We implemented Cheetah in P4 on the Tofino to load balancer QUIC connections by storing the Cheetah cookie in the connection ID of the QUIC packet headers.
+We implemented Stateless Cheetah in P4 on the Tofino to load balancer QUIC connections by storing the Cheetah cookie in the connection ID of the QUIC packet headers.
 
 ## Code organization
 
