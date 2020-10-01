@@ -289,11 +289,6 @@ control Ingress(
                 ig_tm_md.ucast_egress_port = 60;
             }
 
-            // we disable the UDP checksum for simplicity
-            // TODO: implement the UDP chekcsum update
-            //if(hdr.udpQuic.isValid()){
-            //    hdr.udpQuic.checksum = 0x0000;
-            //}
         }
     }
 }
@@ -349,6 +344,9 @@ control IngressDeparser(packet_out pkt,
                     hdr.quicLong.cookie,8w0,
                     meta.udp_checksum
                 }); 
+        }
+        if(hdr.udpQuic.checksum == 0x0000){
+            hdr.udpQuic.checksum = 0xffff;
         }
        }
 
