@@ -297,9 +297,9 @@ control Ingress(
 
             // we disable the UDP checksum for simplicity
             // TODO: implement the UDP chekcsum update
-            //if(hdr.udpQuic.isValid()){
-            //    hdr.udpQuic.checksum = 0x0000;
-            //}
+            if(hdr.udpQuic.isValid()){
+                hdr.udpQuic.checksum = 0x0000;
+            }
         }
     }
 }
@@ -334,7 +334,7 @@ control IngressDeparser(packet_out pkt,
                 hdr.ipv4.dst_addr
             });
        }
-       if(hdr.udpQuic.isValid()){
+       /*if(hdr.udpQuic.isValid()){
           hdr.udpQuic.checksum = udp_checksum.update({
                     hdr.ipv4.src_addr,
                     hdr.ipv4.dst_addr,
@@ -342,7 +342,7 @@ control IngressDeparser(packet_out pkt,
                     hdr.udpQuic.dst_port,
                     meta.udp_checksum
                 }); 
-       }
+       }*/
 
         pkt.emit(hdr);
     }
