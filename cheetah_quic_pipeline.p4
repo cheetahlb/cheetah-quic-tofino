@@ -66,15 +66,11 @@ header quicLong_h{
     bit<8> dcid_length;
     bit<8> dcid_first_byte;
     bit<16> cookie;
-    bit<40> dcid_residue;
-    bit<8> scid_length;
-    bit<64> src_cid;
 }
 
 header quicShort_h{
     bit<8> dcid_first_byte;
     bit<16> cookie;
-    bit<40> dcid_residue;
 }
 
 
@@ -150,8 +146,6 @@ parser IngressParser(packet_in        pkt,
     state parse_udpQuic {
         pkt.extract(hdr.udpQuic);
         udp_ipv4_checksum.subtract({
-                hdr.udpQuic.src_port,
-                hdr.udpQuic.dst_port,
                 hdr.udpQuic.checksum
             });
         meta.udp_checksum = udp_ipv4_checksum.get();
@@ -297,9 +291,9 @@ control Ingress(
 
             // we disable the UDP checksum for simplicity
             // TODO: implement the UDP chekcsum update
-            if(hdr.udpQuic.isValid()){
-                hdr.udpQuic.checksum = 0x0000;
-            }
+            //if(hdr.udpQuic.isValid()){
+            //    hdr.udpQuic.checksum = 0x0000;
+            //}
         }
     }
 }
@@ -334,15 +328,29 @@ control IngressDeparser(packet_out pkt,
                 hdr.ipv4.dst_addr
             });
        }
-       /*if(hdr.udpQuic.isValid()){
+       if(hdr.udpQuic.isValid()){
+        if(hdr.quicShort.isValid()){
           hdr.udpQuic.checksum = udp_checksum.update({
                     hdr.ipv4.src_addr,
                     hdr.ipv4.dst_addr,
-                    hdr.udpQuic.src_port,
-                    hdr.udpQuic.dst_port,
+                    8w0,hdr.quicShort.dcid_first_byte,
+                    hdr.quicShort.cookie,
                     meta.udp_checksum
                 }); 
-       }*/
+        }
+        else if(hdr.quicLong.isValid()){
+          hdr.udpQuic.checksum = udp_checksum.update({
+                    hdr.ipv4.src_addr,
+                    hdr.ipv4.dst_addr,
+                    8w0,
+                    hdr.quicLong.version,
+                    hdr.quicLong.dcid_length, 
+                    hdr.quicLong.dcid_first_byte, 
+                    hdr.quicLong.cookie,8w0,
+                    meta.udp_checksum
+                }); 
+        }
+       }
 
         pkt.emit(hdr);
     }
