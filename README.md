@@ -8,6 +8,7 @@ The code consists of two files:
 
  * `cheetah_quic_pipeline.p4`, which contains the P4 program to handle Cheetah cookies.
  * `cheetah_setup.py`, which contains the Python commands to populate the P4 switch.
+ * `comparison_with_simple_hash/`, contains the cheetah quic pipeline and a simple hash-based LB for comparing them.
 
 ## Prerequisites
 
