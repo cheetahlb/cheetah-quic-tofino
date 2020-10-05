@@ -7,7 +7,10 @@
  ************* C O N S T A N T S    A N D   T Y P E S  *******************
 **************************************************************************/
 
-const int BUCKET_SIZE = 6; // the size of the bucket, used to implement Weighted Round Robin
+const int BUCKET_SIZE = 4; // the size of the bucket, used to implement Weighted Round Robin. MUST BE POWER OF 2.
+const int BUCKET_SIZE_BITS = 1; // the number of bits minus 1 of the bucket, used for hash. 
+const bit<16> LB_MODE_WRR = 0; // weighted round robin LB
+const bit<16> LB_MODE_HASH = 1; // hash base LB
 
 enum bit<16> ether_type_t {
     TPID = 0x8100,
@@ -203,6 +206,13 @@ control Ingress(
     bit<32> virtual_ip = 0xc0a84001; // 192.168.64.1
     bit<16> sel_hash;
 
+        Register<bit<16>, bit<32>>(32w1) lb_mode_reg;
+    RegisterAction<bit<16>, bit<32>, bit<16>>(lb_mode_reg) lb_mode_read = {
+        void apply(inout bit<16> value, out bit<16> read_value){
+            read_value = value;
+        }
+    };
+
     Register<bit<16>, bit<32>>(32w1) bucket_counter_reg;
     RegisterAction<bit<16>, bit<32>, bit<16>>(bucket_counter_reg) bucket_counter_reg_read = {
         void apply(inout bit<16> value, out bit<16> read_value){
@@ -245,44 +255,52 @@ control Ingress(
     apply {
 
         if(hdr.udpQuic.isValid()){
+
+
+            bit<16> lb_mode = lb_mode_read.execute(0);
+            // compute the hash of the IP/UDP identifiers
+            calc_ipv4_hash.apply(hdr,meta,sel_hash);
+
             // check if the packet is towards the VIP
             if(hdr.ipv4.dst_addr == virtual_ip){
+                if(lb_mode == LB_MODE_WRR){
 
-                // check if it is an Initial QUIC packet with a long header
-                if((hdr.udpQuic.hdr_type == 1) && (hdr.udpQuic.pkt_type == (bit<2>)0)){  
+                    // check if it is an Initial QUIC packet with a long header
+                    if((hdr.udpQuic.hdr_type == 1) && (hdr.udpQuic.pkt_type == (bit<2>)0)){  
 
-                    //  get the bucket counter to select the next server in the WRR    
-                    meta.bucket_id = bucket_counter_reg_read.execute(0); 
+                        //  get the bucket counter to select the next server in the WRR    
+                        meta.bucket_id = bucket_counter_reg_read.execute(0); 
 
-                    // forward to the selected server
+                        // forward to the selected server
+                        get_server_from_bucket.apply();
+                    }
+
+                    // any non-Initial packet
+                    else{
+
+                        // extract the cookie from a long or short header and XOR it with the hash of the IP/UDP identifiers
+                        if (hdr.udpQuic.hdr_type == 1){
+                            meta.server_id = sel_hash ^ hdr.quicLong.cookie;
+                        }
+                        else{
+                            meta.server_id = sel_hash ^ hdr.quicShort.cookie;
+                        }
+
+                        // forward to the selected server
+                        get_server_from_id.apply();
+                    }
+                }else if(lb_mode == LB_MODE_HASH){
+                    meta.bucket_id = (bit<16>)sel_hash[BUCKET_SIZE_BITS:0];
                     get_server_from_bucket.apply();
                 }
-
-                // any non-Initial packet
-                else{
-
-                    // compute the hash of the IP/UDP identifiers
-                    calc_ipv4_hash.apply(hdr,meta,sel_hash);
-
-                    // extract the cookie from a long or short header and XOR it with the hash of the IP/UDP identifiers
-                    if (hdr.udpQuic.hdr_type == 1){
-                        meta.server_id = sel_hash ^ hdr.quicLong.cookie;
-                    }
-                    else{
-                        meta.server_id = sel_hash ^ hdr.quicShort.cookie;
-                    }
-
-                    // forward to the selected server
-                    get_server_from_id.apply();
-                }
             }
-
             //if the packet comes from a server (clients are attached on port 60)
             else if(ig_intr_md.ingress_port != 60){
 
                 // replace the IP source with the VIP
                 if(hdr.ipv4.isValid()){
                     hdr.ipv4.src_addr = virtual_ip;
+                    
                 }
 
                 // the client is connected to port '60'
@@ -345,11 +363,11 @@ control IngressDeparser(packet_out pkt,
                     meta.udp_checksum
                 }); 
         }
-       }
-        // we need to update the UDP checksum if it is 0x0000 
-        if(hdr.udpQuic.checksum == 0x0000){
+        /*if(hdr.udpQuic.checksum == 0x0000){
             hdr.udpQuic.checksum = 0xffff;
-        }
+        }*/
+       }
+
         pkt.emit(hdr);
     }
 }
