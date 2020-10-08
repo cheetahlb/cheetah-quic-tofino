@@ -11,6 +11,8 @@ The code consists of four files:
  * `cheetah_change_mode_to_wrr.py`, which allows to enable the Cheetah Weighted Round Robin (WRR) LB.
  * `cheetah_change_mode_to_hash.py`, which allows to enable a simple hash-based LB.
 
+To run one of these scripts, use `$SDE/run_bfshell.sh -b $(pwd)/script.py`
+
 ## Prerequisites
 
 You should have installed our modified version of picoquic (from [here](link)) on three machines. One machine is used as a cliente and two machines as the servers.
