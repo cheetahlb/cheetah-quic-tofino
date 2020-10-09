@@ -11,7 +11,7 @@ The code consists of four files:
  * `cheetah_change_mode_to_wrr.py`, which allows to enable the Cheetah Weighted Round Robin (WRR) LB.
  * `cheetah_change_mode_to_hash.py`, which allows to enable a simple hash-based LB.
 
-To run one of these scripts, use `$SDE/run_bfshell.sh -b $(pwd)/script.py`
+To run one of these last three Pythong scripts, use `$SDE/run_bfshell.sh -b $(pwd)/script.py`. Use the standard `$SDE/run_switchd.sh -p cheetah_quic_and_hash_pipeline` to run the P4 program and `$SDE/p4_build.sh $(pwd)/cheetah_quic_and_hash_pipeline.p4`
 
 ## Prerequisites
 
