@@ -235,6 +235,11 @@ control Ingress(
         ig_tm_md.ucast_egress_port = egress_port;
     }
 
+    action fwd_to_client(bit<9> egress_port, bit<48> dmac) {
+        hdr.ethernet.dst_addr = dmac;
+        ig_tm_md.ucast_egress_port = egress_port;
+    }
+
     table get_server_from_id {
         key = {
             meta.server_id: exact;
@@ -251,6 +256,16 @@ control Ingress(
         }
         actions = {
             fwd_to_server;
+        }
+        size = 1024;
+    }
+
+    table get_client {
+        key = {
+            hdr.ipv4.dst_addr: exact;
+        }
+        actions = {
+            fwd_to_client;
         }
         size = 1024;
     }
@@ -301,8 +316,9 @@ control Ingress(
                     get_server_from_bucket.apply();
                 }
             }
-            //if the packet comes from a server (clients are attached on port 60)
-            else if(ig_intr_md.ingress_port != 60) {
+            //if the packet comes from a server (dst is not VIP)
+            else
+            {
 
                 // replace the IP source with the VIP
                 if(hdr.ipv4.isValid()){
@@ -310,8 +326,7 @@ control Ingress(
                     
                 }
 
-                // the client is connected to port '60'
-                ig_tm_md.ucast_egress_port = 60;
+                get_client.apply();
             }
 
         }

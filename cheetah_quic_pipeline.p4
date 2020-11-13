@@ -216,6 +216,7 @@ control Ingress(
         }
     };
 
+
     action fwd_to_server(bit<9> egress_port, bit<32> dip, bit<48> dmac) {
         hdr.ipv4.dst_addr = dip;
         hdr.ethernet.dst_addr = dmac;
@@ -289,6 +290,7 @@ control Ingress(
                 ig_tm_md.ucast_egress_port = 60;
             }
 
+
         }
     }
 }
@@ -347,9 +349,9 @@ control IngressDeparser(packet_out pkt,
         }
        }
         // we need to update the UDP checksum if it is 0x0000 
-        if(hdr.udpQuic.checksum == 0x0000){
+        /*if(hdr.udpQuic.checksum == 0x0000){
             hdr.udpQuic.checksum = 0xffff;
-        }
+        }*/
         pkt.emit(hdr);
     }
 }
@@ -378,6 +380,7 @@ parser EgressParser(packet_in        pkt,
     /* Intrinsic */
     out egress_intrinsic_metadata_t  eg_intr_md)
 {
+
     /* This is a mandatory state, required by Tofino Architecture */
     state start {
         pkt.extract(eg_intr_md);
